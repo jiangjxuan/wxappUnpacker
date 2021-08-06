@@ -130,7 +130,7 @@ function analyze(core, z, namePool, xPool, fakePool = {}, zMulName = "0") {
                                 break;
                             case "_m": {
                                 if (dec.init.arguments[2].elements.length > 0)
-                                    throw Error("Noticable generics content: " + dec.init.arguments[2].toString());
+                                throw Error("Noticable generics content: " + dec.init.arguments[2].toString());
                                 let mv = {};
                                 let name = null, base = 0;
                                 for (let x of dec.init.arguments[1].elements) {
@@ -152,11 +152,35 @@ function analyze(core, z, namePool, xPool, fakePool = {}, zMulName = "0") {
                                 push(dec.id.name, {tag: dec.init.arguments[0].value, son: [], v: mv});
                             }
                                 break;
-                            case "_mz": {
-                                if (dec.init.arguments[3].elements.length > 0)
-                                    throw Error("Noticable generics content: " + dec.init.arguments[3].toString());
+                            case "_mz": {                                
                                 let mv = {};
                                 let name = null, base = 0;
+                                if (dec.init.arguments[3].elements.length > 0) {
+                                    for (let x of dec.init.arguments[3].elements) {
+                                        let v = x.value;
+                                        if (!v && typeof v != "number") {
+                                            if (x.type == "UnaryExpression" && x.operator == "-") {
+                                                v = -x.argument.value;
+                                            } else {
+                                                throw Error("Unknown type of object in _mz attrs array: " + x.type);
+                                            }
+                                        }
+                                        if (name === null) {
+                                            name = v;
+                                        } else {
+                                            if (base + v < 0) {
+                                                mv[name] = null;
+                                            }  else {
+                                                mv[name] = z.mul[zMulName][base + v];
+                                                if (base == 0) {
+                                                    base = v;
+                                                } 
+                                            }
+                                            name = null;
+                                        }
+                                    }
+                                    // throw Error("Noticable generics content: " + dec.init.arguments[3].toString());
+                                }
                                 for (let x of dec.init.arguments[2].elements) {
                                     let v = x.value;
                                     if (!v && typeof v != "number") {
